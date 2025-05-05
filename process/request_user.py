@@ -12,13 +12,12 @@ class RequestUser():
     
     def _execute(self, action, params=None):
         mysql_connection = ExecutionQuery(self.mysql_connection)
-        match action:
-            case "get_users":
-                data = self._get_users(mysql_connection)
-                return data
-            case "create_users":
-                data_response = self._create_user(params)
-                return data_response
+        if action == "get_users":
+            data = self._get_users(mysql_connection)
+            return data
+        elif action == "create_users":
+            data_response = self._create_user(params)
+            return data_response
     
     def _get_users(self, mysql_connection):
         result = mysql_connection.select_mysql(queries.select_data_test(),None, False)

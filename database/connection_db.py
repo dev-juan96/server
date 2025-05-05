@@ -1,3 +1,4 @@
+from mysql.connector import errorcode
 from dotenv import load_dotenv
 from datetime import datetime
 import mysql.connector
@@ -26,7 +27,6 @@ class ConectionDB:
             max_attempts = 3
             while attempts < max_attempts:
                 try:
-                    
                     if self.db == 'MySQL':
                         self.connection = mysql.connector.connect(
                             user=self.user,
@@ -46,6 +46,11 @@ class ConectionDB:
                       print("Database does not exist")
                     else:
                       print(err)
+                      
+                    attempts += 1
+                    if attempts == max_attempts:
+                        print("Numero maximo de intentos alcanzado")
+                        return None
                 else:
                   self.disconnect()
                                
