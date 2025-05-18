@@ -3,9 +3,10 @@
 #from models_api.estatus_process import EstatusProcess
 from fastapi.exceptions import RequestValidationError
 from models.user_data import UserData
+from models.user_login import UserLogin 
 from process.request_user import RequestUser
 from fastapi import FastAPI, HTTPException, Request
-#from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 #import documentation.text_info as text_info 
 from fastapi.responses import JSONResponse
 from database.connection_db import ConectionDB
@@ -35,6 +36,19 @@ def get_credential_database():
         os.getenv('PASS_MySQL'),
         os.getenv('PORT_MySQL'),
     )
+# Lista de orígenes permitidos (Angular en desarrollo)
+origins = [
+    "http://localhost:4200",      
+    "http://192.168.1.38:4200",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"], 
+)
 
 @app.get("/users")
 async def read_user():
@@ -49,16 +63,35 @@ async def read_user():
         logging.error(f"Ocurrio un problema: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
     
-@app.post("/user/new")
-async def create_user(data: UserData):
+# @app.post("/user/new")
+# async def create_user(data: UserData):
+#     try:
+#         value_data = data.dic()
+#         mysql = get_credential_database()
+#         users = RequestUser(mysql)
+#         result = users._execute("create_users", value_data)
+#         return JSONResponse(status_code=200, content={"result": "Finalizo procesamiento", "data":result})
+#     except Exception as e:
+#         logging.basicConfig(level=logging.ERROR,
+#                     format='%(asctime)s - %(levelname)s - %(message)s')
+#         logging.error(f"Ocurrio un problema: {str(e)}")
+#         raise HTTPException(status_code=400, detail=f"Error: {str(e)}") 
+    
+@app.post("/user/login")
+async def login(data: UserLogin):
     try:
-        value_data = data.dic()
+        value_credential = data.dict()
         mysql = get_credential_database()
-        users = RequestUser(mysql)
-        result = users._execute("create_users", value_data)
-        return JSONResponse(status_code=200, content={"result": "Finalizo procesamiento", "data":result})
+        user = RequestUser(mysql)
+        credentials = (value_credential['correo'],value_credential['password'])
+        result = user._execute("get_users", credentials)
+        if result == None:
+            print("User Not Fount")
+            return JSONResponse(status_code=404, content={"result": "Finalizo procesamiento", "data":"User Not Fount"})
+        else:
+            return JSONResponse(status_code=200, content={"result": "Finalizo procesamiento", "data":result})
     except Exception as e:
         logging.basicConfig(level=logging.ERROR,
                     format='%(asctime)s - %(levelname)s - %(message)s')
         logging.error(f"Ocurrio un problema: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Error: {str(e)}") 
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")

@@ -13,7 +13,8 @@ class RequestUser():
     def _execute(self, action, params=None):
         mysql_connection = ExecutionQuery(self.mysql_connection)
         if action == "get_users":
-            data = self._get_users(mysql_connection)
+            data = self._get_users(mysql_connection) if params is None else self._get_user_by_credential(mysql_connection,params)
+            #data = self._get_users(mysql_connection)
             return data
         elif action == "create_users":
             data_response = self._create_user(params)
@@ -22,6 +23,10 @@ class RequestUser():
     def _get_users(self, mysql_connection):
         result = mysql_connection.select_mysql(queries.select_data_test(),None, False)
         result = self._format_date(result)
+        return result
+    
+    def _get_user_by_credential(self, mysql_connection, params):
+        result = mysql_connection.select_mysql(queries.selec_unic_user_em(),params,True)
         return result
     
     def _create_user(self, params):
